@@ -5,9 +5,10 @@ Python Flask RestAPI using MongoDB
 git clone https://github.com/yusoofash/adroit-pilot-be.git
 cd adroit-pilot-be
 ```
-Create an environment
+Create an environment and activate
 ```
 py -3 -m venv venv
+venv\Scripts\activate
 ```
 Install requirements 
 ```
