@@ -3,8 +3,18 @@ Python Flask RestAPI using MongoDB
 ## Installation
 ```
 git clone https://github.com/yusoofash/adroit-pilot-be.git
-cd adroitPilot
+cd adroit-pilot-be
+```
+Create an environment
+```
+py -3 -m venv venv
+```
+Install requirements 
+```
 pip install -r requirements.txt
+```
+## Run app
+```
 export FLASK_APP=adroitPilot
 export FLASK_ENV=development
 flask run
