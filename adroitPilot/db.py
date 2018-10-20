@@ -16,7 +16,7 @@ class DatabaseRepository:
 
     def read_one(self, val=None):
         if val is None:
-            return  self.db[self.col].find_one()
+            return self.db[self.col].find_one()
         return self.db[self.col].find_one(val)
 
     def create(self, val):

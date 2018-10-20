@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+from flask_jwt_extended import JWTManager
 import config
 
 def create_app(test_config=None):
@@ -14,10 +15,13 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     app.config["MONGO_URI"] = config.MONGO_URI
+    app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
 
     from .db import DatabaseRepository
     db = DatabaseRepository()
     db.mongo.init_app(app)
+
+    jwt = JWTManager(app)
 
     # ensure the instance folder exists
     try:
