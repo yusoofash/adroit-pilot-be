@@ -1,7 +1,9 @@
 import os
 from flask import Flask
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS, cross_origin
 import config
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -16,6 +18,7 @@ def create_app(test_config=None):
 
     app.config["MONGO_URI"] = config.MONGO_URI
     app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
+    CORS(app)
 
     from .db import DatabaseRepository
     db = DatabaseRepository()
