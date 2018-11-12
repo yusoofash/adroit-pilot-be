@@ -5,22 +5,31 @@ from flask_jwt_extended import create_access_token
 
 class PersonServices:
     def registerService(self, user_details, db):
-        email = user_details['email']
-        password = user_details['password']
+        userDetails = user_details
         error = None
-        if email is None:
-            error = 'Email is required'
-        elif password is None:
-            error = 'Password is required'
+        if 'email' not in userDetails:
+            return 'Email is required'
+        elif 'password' not in userDetails:
+            return 'Password is required'
         else:
-            if db.read_one({'email': email}) is None:
-                user_details['password'] = generate_password_hash(password)
-                db.create(user_details)
-                return 'success'
-            else:
-                error = 'Email exists'
+            email = userDetails['email']
+            pno = None
+            company_name = None
+            password = userDetails['password']
+            if db.read_one({'email': email}) is not None:
+                return 'Email exists'
+            elif 'contact_no' in userDetails:
+                pno = userDetails['pno']
+                if db.read_one({'contact_no': pno}) is not None:
+                    return 'Phone no. exists'
+            elif 'company_name' in userDetails:
+                company_name = userDetails['company_name']
+                if db.read_one({'company_name': company_name}) is not None:
+                    return 'Company name exists'
 
-        return error
+            user_details['password'] = generate_password_hash(password)
+            db.create(user_details)
+            return 'success'
 
     def getPeople(self, db):
         users = db.read()
@@ -37,10 +46,10 @@ class PersonServices:
         error = None
         if user is None:
             # error = 'Incorrect username'
-            error = 'Incorrect username or password'
+            error = 'Incorrect email or password'
         elif not check_password_hash(user['password'], password):
             # error = 'Incorrect password'
-            error = 'Incorrect username or password'
+            error = 'Incorrect email or password'
 
         if error is None:
             access_token = create_access_token(identity=email)
