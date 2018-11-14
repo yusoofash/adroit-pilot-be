@@ -7,8 +7,8 @@ from ..services.auth import (
 )
 
 from bson.json_util import dumps
-from flask_jwt_extended import (
-    jwt_required, get_jwt_identity
+from flask_jwt_simple import (
+    JWTManager, jwt_required, create_jwt, get_jwt_identity
 )
 
 bp = Blueprint('auth', __name__)
@@ -22,9 +22,9 @@ def register_user():
         except:
             return jsonify('Invalid data given'), 400
         user = User()
-        res = user.registerUser(user_details)
-        return jsonify(res)
-    return jsonify('')
+        res = user.register_user(user_details)
+        return dumps(res), 200
+    return jsonify(''), 200
 
 
 @bp.route("/register/company", methods=['GET', 'POST'])
@@ -35,68 +35,92 @@ def register_company():
         except:
             return jsonify('Invalid data given'), 400
         company = Company()
-        res = company.registerCompany(company_details)
-        return jsonify(res)
-    return jsonify('')
+        res = company.register_company(company_details)
+        return dumps(res), 200
+    return jsonify(''), 200
 
 
 @bp.route("/users", methods=['GET'])
+@jwt_required
 def users():
     user = User()
-    all_users = user.getUsers()
+    all_users = user.get_users()
     return jsonify(dumps(all_users))
 
 
+@bp.route("/users/<ObjectId:id>", methods=['GET'])
+@jwt_required
+def user(id):
+    user = User()
+    user = user.get_user(id)
+    return jsonify(dumps(user))
+
+
+@bp.route("/companies/<ObjectId:id>", methods=['GET'])
+@jwt_required
+def company(id):
+    company = Company()
+    company = company.get_company(id)
+    return jsonify(dumps(company))
+
+
 @bp.route("/companies", methods=['GET'])
+@jwt_required
 def companies():
     company = Company()
-    all_companies = company.getCompanies()
-    return jsonify(dumps(all_companies))
+    all_companies = company.get_companies()
+    return dumps(all_companies)
 
 
-@bp.route("/login/user", methods=['Get', 'POST'])
+@bp.route("/user/authenticate", methods=['Get', 'POST'])
 def login_user():
     if request.method == 'POST':
         try:
-            user_details = request.json['user']
-        except:
-            return jsonify('Invalid data given'), 400
-        email = user_details['email']
-        password = user_details['password']
+            email = request.json['email']
+            password = request.json['password']
+        except Exception as err:
+            return jsonify('Invalid data given', err), 400
         if email is None:
             return jsonify({"msg": 'Email is required'}), 400
         elif password is None:
             return jsonify({"msg": 'Password is required'}), 400
         else:
             user = User()
-            res = user.authenticateUser(email, password)
-            return jsonify(res)
+            res = user.authenticate_user(email, password)
+            return dumps(res)
     return jsonify('')
 
 
-@bp.route("/login/company", methods=['Get', 'POST'])
+@bp.route("/company/authenticate", methods=['Get', 'POST'])
 def login_company():
     if request.method == 'POST':
         try:
-            company_details = request.json['company']
+            email = request.json['email']
+            password = request.json['password']
         except:
             return jsonify('Invalid data given'), 400
-        email = company_details['email']
-        password = company_details['password']
         if email is None:
             return jsonify({"msg": 'Email is required'}), 400
         elif password is None:
             return jsonify({"msg": 'Password is required'}), 400
         else:
             company = Company()
-            res = company.authenticateCompany(email, password)
-            return jsonify(res)
+            res = company.authenticate_company(email, password)
+            return dumps(res)
     return jsonify('')
 
 
-@bp.route('/protected', methods=['GET'])
-@jwt_required
-def protected():
-    # Access the identity of the current user with get_jwt_identity
-    current_user = get_jwt_identity()
-    return jsonify(logged_in_as=current_user), 200
+# @bp.route('/protected/user', methods=['GET'])
+# @jwt_required
+# def protected_user():
+#     # Access the identity of the current user with get_jwt_identity
+#     current_user = get_jwt_identity()
+#     return jsonify(logged_in_as=current_user), 200
+#
+#
+# @bp.route('/protected/company', methods=['GET'])
+# @jwt_required
+# def protected_company():
+#     # Access the identity of the current user with get_jwt_identity
+#     current_user = get_jwt_identity()
+#     return jsonify(logged_in_as=current_user), 200

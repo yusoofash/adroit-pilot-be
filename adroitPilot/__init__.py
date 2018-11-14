@@ -1,8 +1,15 @@
 import os
 from flask import Flask
-from flask_jwt_extended import JWTManager
+from flask_jwt_simple import (
+    JWTManager, jwt_required, create_jwt, get_jwt
+)
 from flask_cors import CORS, cross_origin
 import config
+from flask_pymongo import PyMongo
+
+
+mongo = None
+jwt = None
 
 
 def create_app(test_config=None):
@@ -20,10 +27,10 @@ def create_app(test_config=None):
     app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
     CORS(app)
 
-    from .db import DatabaseRepository
-    db = DatabaseRepository()
-    db.mongo.init_app(app)
+    global mongo
+    mongo = PyMongo(app)
 
+    global jwt
     jwt = JWTManager(app)
 
     # ensure the instance folder exists

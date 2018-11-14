@@ -1,48 +1,80 @@
 from werkzeug.security import check_password_hash, generate_password_hash
 from . import DatabaseRepository
 from flask_jwt_extended import create_access_token
+from flask_jwt_simple import (
+    JWTManager, jwt_required, create_jwt, get_jwt
+)
+from adroitPilot import jwt
+from enum import Enum
+
+
+class EntityType(Enum):
+    user = 1
+    company = 2
 
 
 class PersonServices:
-    def registerService(self, user_details, db):
-        userDetails = user_details
-        error = None
-        if 'email' not in userDetails:
+    collection = None
+
+    def __init__(self, collection):
+        self.db = DatabaseRepository(collection)
+        PersonServices.collection = collection
+        
+    def register_service(self, user_details):
+        user_details = user_details
+        if 'email' not in user_details:
             return 'Email is required'
-        elif 'password' not in userDetails:
+        elif 'password' not in user_details:
             return 'Password is required'
         else:
-            email = userDetails['email']
-            pno = None
-            company_name = None
-            password = userDetails['password']
-            if db.read_one({'email': email}) is not None:
+            email = user_details['email']
+            password = user_details['password']
+            if self.db.read_one({'email': email}) is not None:
                 return 'Email exists'
-            elif 'contact_no' in userDetails:
-                pno = userDetails['pno']
-                if db.read_one({'contact_no': pno}) is not None:
+            elif 'contact_no' in user_details:
+                pno = user_details['pno']
+                if self.db.read_one({'contact_no': pno}) is not None:
                     return 'Phone no. exists'
-            elif 'company_name' in userDetails:
-                company_name = userDetails['company_name']
-                if db.read_one({'company_name': company_name}) is not None:
+            elif 'company_name' in user_details:
+                company_name = user_details['company_name']
+                if self.db.read_one({'company_name': company_name}) is not None:
                     return 'Company name exists'
 
             user_details['password'] = generate_password_hash(password)
-            db.create(user_details)
+            self.db.create(user_details)
             return 'success'
 
-    def getPeople(self, db):
-        users = db.read()
-        all_users = []
-        if users is not None:
-            for user in users:
-                all_users.append(user)
-            return all_users
+    def get_entity(self, id=None):
+        if id is None:
+            users = self.db.read()
+            all_users = []
+            if users is not None:
+                for user in users:
+                    all_users.append(user)
+                return all_users
+            else:
+                return all_users
         else:
-            return ''
+            user = self.db.read_one({"_id": id})
+            if user is not None:
+                return user
+            else:
+                return user
 
-    def authenticate(self, email, password, db):
-        user = db.read_one({'email': email})
+    @jwt.jwt_data_loader
+    def add_claims_to_access_token(identity):
+        if PersonServices.collection == 'company':
+            roles = 'company'
+        else:
+            roles = 'user'
+
+        return {
+            'sub': identity,
+            'roles': roles
+        }
+
+    def authenticate(self, email, password):
+        user = self.db.read_one({'email': email})
         error = None
         if user is None:
             # error = 'Incorrect username'
@@ -52,43 +84,45 @@ class PersonServices:
             error = 'Incorrect email or password'
 
         if error is None:
-            access_token = create_access_token(identity=email)
-            return {'msg': 'success', 'access_token': access_token}
+            access_token  = create_jwt(email)
+            user_data = dict(user)
+            del user_data["password"]
+            return {'msg': 'success', 'access_token': access_token, 'data': user_data}
         else:
             return {'msg': error}
 
 
 class User(PersonServices):
-    def get_db(self):
-        db = DatabaseRepository('user')
-        return db
+    def __init__(self):
+        user = EntityType.user.name
+        super().__init__(user)
 
-    def registerUser(self, user_details):
-        db = self.get_db()
-        return self.registerService(user_details, db)
+    def register_user(self, user_details):
+        return self.register_service(user_details)
 
-    def getUsers(self):
-        db = self.get_db()
-        return self.getPeople(db)
+    def get_users(self):
+        return self.get_entity()
 
-    def authenticateUser(self, email, password):
-        db = self.get_db()
-        return self.authenticate(email, password, db)
+    def get_user(self, id):
+        return self.get_entity(id)
+
+    def authenticate_user(self, email, password):
+        return self.authenticate(email, password)
 
 
 class Company(PersonServices):
-    def get_db(self):
-        db = DatabaseRepository('company')
-        return db
+    def __init__(self):
+        company = EntityType.company.name
+        super().__init__(company)
 
-    def registerCompany(self, company_details):
-        db = self.get_db()
-        return self.registerService(company_details, db)
+    def register_company(self, company_details):
+        return self.register_service(company_details)
 
-    def getCompanies(self):
-        db = self.get_db()
-        return self.getPeople(db)
+    def get_companies(self):
+        return self.get_entity()
 
-    def authenticateCompany(self, email, password):
-        db = self.get_db()
-        return self.authenticate(email, password, db)
+    def get_company(self, id):
+        return self.get_entity(id)
+
+    def authenticate_company(self, email, password):
+        return self.authenticate(email, password)
