@@ -45,23 +45,34 @@ def register_company():
 def users():
     user = User()
     all_users = user.get_users()
-    return jsonify(dumps(all_users))
+    return dumps(all_users)
 
 
-@bp.route("/users/<ObjectId:id>", methods=['GET'])
+@bp.route("/user/<ObjectId:id>", methods=['GET'])
 @jwt_required
 def user(id):
     user = User()
     user = user.get_user(id)
-    return jsonify(dumps(user))
+    return dumps(user)
 
 
-@bp.route("/companies/<ObjectId:id>", methods=['GET'])
+@bp.route("/company/<ObjectId:id>", methods=['GET'])
 @jwt_required
 def company(id):
     company = Company()
     company = company.get_company(id)
-    return jsonify(dumps(company))
+    return dumps(company)
+
+
+@bp.route("/company/<ObjectId:id>", methods=['PUT'])
+@jwt_required
+def update_company_details(id):
+    if not request.json:
+        return jsonify('No data supplied'), 400
+    details = request.json
+    company = Company()
+    res = company.update_details(id, details)
+    return dumps(res)
 
 
 @bp.route("/companies", methods=['GET'])
