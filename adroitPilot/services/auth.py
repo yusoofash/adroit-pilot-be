@@ -4,6 +4,7 @@ from flask_jwt_extended import create_access_token
 from flask_jwt_simple import (
     JWTManager, jwt_required, create_jwt, get_jwt
 )
+from bson.json_util import dumps
 from adroitPilot import jwt
 from enum import Enum
 
@@ -42,9 +43,9 @@ class PersonServices:
 
             user_details['password'] = generate_password_hash(password)
             self.db.create(user_details)
-            return 'success'
+            return self.authenticate(user_details['email'], password)
 
-    def get_entity(self, id=None):
+    def get_entity(self, entity_id=None):
         if id is None:
             users = self.db.read()
             all_users = []
@@ -55,7 +56,8 @@ class PersonServices:
             else:
                 return all_users
         else:
-            user = self.db.read_one({"_id": id})
+            user = self.db.read_one({"_id": entity_id})
+            del user["password"]
             if user is not None:
                 return user
             else:
@@ -76,6 +78,7 @@ class PersonServices:
     def authenticate(self, email, password):
         user = self.db.read_one({'email': email})
         error = None
+
         if user is None:
             # error = 'Incorrect username'
             error = 'Incorrect email or password'
@@ -84,12 +87,22 @@ class PersonServices:
             error = 'Incorrect email or password'
 
         if error is None:
-            access_token  = create_jwt(email)
+            access_token = create_jwt(str(user["_id"]))
             user_data = dict(user)
             del user_data["password"]
             return {'msg': 'success', 'access_token': access_token, 'data': user_data}
         else:
             return {'msg': error}
+
+    def update_details(self, detail_id, details):
+        db_details = self.db.read_one({"_id": detail_id})
+        if db_details is None:
+            return None
+        for key in details:
+            db_details[key] = details[key]
+        del db_details["_id"]
+        self.db.replace({"_id": detail_id}, db_details)
+        return db_details
 
 
 class User(PersonServices):
@@ -121,8 +134,11 @@ class Company(PersonServices):
     def get_companies(self):
         return self.get_entity()
 
-    def get_company(self, id):
-        return self.get_entity(id)
+    def get_company(self, company_id):
+        return self.get_entity(company_id)
 
     def authenticate_company(self, email, password):
         return self.authenticate(email, password)
+
+    def update_company_details(self, company_id, details):
+        return self.update_details(company_id, details)

@@ -25,8 +25,8 @@ class DatabaseRepository:
             return None
         self.db.insert_one(val)
 
-    def update(self, filter, replacment):
-        result = self.db.update_one(filter, replacment)
+    def replace(self, filter1, replacment):
+        result = self.db.replace_one(filter1, replacment)
         return result
 
     def delete(self, filter):
