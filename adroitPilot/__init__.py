@@ -6,11 +6,10 @@ from flask_jwt_simple import (
 from flask_cors import CORS, cross_origin
 import config
 from flask_pymongo import PyMongo
-
+import cloudinary
 
 mongo = None
 jwt = None
-
 
 def create_app(test_config=None):
     # create and configure the app
@@ -33,13 +32,20 @@ def create_app(test_config=None):
     global jwt
     jwt = JWTManager(app)
 
+    cloudinary.config(
+        cloud_name=config.CLOUDINARY_CLOUD_NAME,
+        api_key=config.CLOUDINARY_API_KEY,
+        api_secret=config.CLOUDINARY_API_SECRET
+    )
+
     # ensure the instance folder exists
     try:
         os.makedirs(app.instance_path)
     except OSError:
         pass
 
-    from .controller import authDto
+    from .controller import authDto, companyDto
     app.register_blueprint(authDto.bp)
+    app.register_blueprint(companyDto.company_api)
 
     return app

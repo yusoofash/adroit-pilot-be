@@ -5,7 +5,6 @@ from flask import (
 from ..services.auth import (
     User, Company
 )
-
 from bson.json_util import dumps
 from flask_jwt_simple import (
     JWTManager, jwt_required, create_jwt, get_jwt_identity
@@ -54,33 +53,6 @@ def user(id):
     user = User()
     user = user.get_user(id)
     return dumps(user)
-
-
-@bp.route("/company/<ObjectId:id>", methods=['GET'])
-@jwt_required
-def company(id):
-    company = Company()
-    company = company.get_company(id)
-    return dumps(company)
-
-
-@bp.route("/company/<ObjectId:id>", methods=['PUT'])
-@jwt_required
-def update_company_details(id):
-    if not request.json:
-        return jsonify('No data supplied'), 400
-    details = request.json
-    company = Company()
-    res = company.update_details(id, details)
-    return dumps(res)
-
-
-@bp.route("/companies", methods=['GET'])
-@jwt_required
-def companies():
-    company = Company()
-    all_companies = company.get_companies()
-    return dumps(all_companies)
 
 
 @bp.route("/user/authenticate", methods=['Get', 'POST'])

@@ -57,8 +57,8 @@ class PersonServices:
                 return all_users
         else:
             user = self.db.read_one({"_id": entity_id})
-            del user["password"]
             if user is not None:
+                del user["password"]
                 return user
             else:
                 return user
