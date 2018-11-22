@@ -2,9 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, jsonify
 )
 from werkzeug.utils import secure_filename
-from ..services.auth import (
-    Company
-)
+from ..services.company import Company
 import cloudinary.uploader
 from bson.json_util import dumps
 from flask_jwt_simple import (
@@ -24,7 +22,7 @@ def companies():
 
 @company_api.route("/company/<ObjectId:id>", methods=['GET'])
 @jwt_required
-def company(id):
+def company_details(id):
     company = Company()
     company = company.get_company(id)
     return dumps(company)

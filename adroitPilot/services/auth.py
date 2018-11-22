@@ -46,11 +46,12 @@ class PersonServices:
             return self.authenticate(user_details['email'], password)
 
     def get_entity(self, entity_id=None):
-        if id is None:
+        if entity_id is None:
             users = self.db.read()
             all_users = []
             if users is not None:
                 for user in users:
+                    del user['password']
                     all_users.append(user)
                 return all_users
             else:
@@ -95,7 +96,7 @@ class PersonServices:
             return {'msg': error}
 
     def update_details(self, detail_id, details):
-        db_details = self.db.read_one({"_id": detail_id})
+        db_details = self.db.read_one({'_id': detail_id})
         if db_details is None:
             return None
         for key in details:
@@ -116,29 +117,25 @@ class User(PersonServices):
     def get_users(self):
         return self.get_entity()
 
-    def get_user(self, id):
-        return self.get_entity(id)
+    def get_user(self, user_id):
+        return self.get_entity(user_id)
 
     def authenticate_user(self, email, password):
         return self.authenticate(email, password)
 
-
-class Company(PersonServices):
-    def __init__(self):
-        company = EntityType.company.name
-        super().__init__(company)
-
-    def register_company(self, company_details):
-        return self.register_service(company_details)
-
-    def get_companies(self):
-        return self.get_entity()
-
-    def get_company(self, company_id):
-        return self.get_entity(company_id)
-
-    def authenticate_company(self, email, password):
-        return self.authenticate(email, password)
-
-    def update_company_details(self, company_id, details):
-        return self.update_details(company_id, details)
+    def update_user_details(self, user_id, details):
+        from bson.objectid import ObjectId
+        user = self.db.read_one({'_id': ObjectId(user_id)})
+        if user is None:
+            return None
+        else:
+            # for key in details:
+            #     user[key] = details[key]
+            if "resume" in user:
+                user["resume"].append(details)
+            else:
+                user["resume"] = details
+            del user["_id"]
+            self.db.replace({"_id": ObjectId(user_id)}, user)
+            del user['password']
+            return user

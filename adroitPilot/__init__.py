@@ -10,9 +10,12 @@ import cloudinary
 
 mongo = None
 jwt = None
+app = None
+
 
 def create_app(test_config=None):
     # create and configure the app
+    global app
     app = Flask(__name__, instance_relative_config=True)
 
     if test_config is None:
@@ -24,6 +27,7 @@ def create_app(test_config=None):
 
     app.config["MONGO_URI"] = config.MONGO_URI
     app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
+    app.config['UPLOAD_FOLDER'] = config.UPLOAD_FOLDER
     CORS(app)
 
     global mongo
@@ -44,8 +48,9 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    from .controller import authDto, companyDto
+    from .controller import authDto, companyDto, userDto
     app.register_blueprint(authDto.bp)
     app.register_blueprint(companyDto.company_api)
+    app.register_blueprint(userDto.user_api)
 
     return app

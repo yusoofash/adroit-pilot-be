@@ -2,9 +2,8 @@ import functools
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, jsonify
 )
-from ..services.auth import (
-    User, Company
-)
+from ..services.auth import User
+from ..services.company import Company
 from bson.json_util import dumps
 from flask_jwt_simple import (
     JWTManager, jwt_required, create_jwt, get_jwt_identity
@@ -37,22 +36,6 @@ def register_company():
         res = company.register_company(company_details)
         return dumps(res), 200
     return jsonify(''), 200
-
-
-@bp.route("/users", methods=['GET'])
-@jwt_required
-def users():
-    user = User()
-    all_users = user.get_users()
-    return dumps(all_users)
-
-
-@bp.route("/user/<ObjectId:id>", methods=['GET'])
-@jwt_required
-def user(id):
-    user = User()
-    user = user.get_user(id)
-    return dumps(user)
 
 
 @bp.route("/user/authenticate", methods=['Get', 'POST'])
