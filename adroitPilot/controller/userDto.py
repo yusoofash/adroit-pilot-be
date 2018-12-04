@@ -92,11 +92,11 @@ def upload_resume():
             new_directory = str(uuid.uuid1())
             filename = secure_filename(file.filename)
             file_directory = app.config['UPLOAD_FOLDER']+'/'+new_directory
-            os.makedirs(file_directory)
-            file_path = os.path.join(file_directory, filename)
-            file.save(os.path.join(file_directory, filename))
 
             if filename.endswith('.pdf') or filename.endswith('.docx'):
+                os.makedirs(file_directory)
+                file_path = os.path.join(file_directory, filename)
+                file.save(os.path.join(file_directory, filename))
                 text = None
                 if filename.endswith('.pdf'):
                     text = convert_pdf_to_txt(file_path)

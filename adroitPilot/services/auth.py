@@ -134,7 +134,7 @@ class User(PersonServices):
             if "resume" in user:
                 user["resume"].append(details)
             else:
-                user["resume"] = details
+                user["resume"] = [details]
             del user["_id"]
             self.db.replace({"_id": ObjectId(user_id)}, user)
             del user['password']
