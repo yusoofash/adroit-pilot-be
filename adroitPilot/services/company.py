@@ -1,5 +1,5 @@
 from .auth import PersonServices, EntityType
-
+from .prediction import weightage
 
 class Company(PersonServices):
     def __init__(self):
@@ -28,3 +28,8 @@ class Company(PersonServices):
             del company1['password']
             companies_dto.append(company1)
         return companies_dto
+
+    def rank_companies(self, user_details):
+        company_details = self.get_companies()
+        prediction = weightage(user_details, company_details)
+        return prediction

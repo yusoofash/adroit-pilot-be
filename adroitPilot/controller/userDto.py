@@ -117,6 +117,49 @@ def upload_resume():
         return ''
 
 
+@user_api.route('/user/resume_test', methods=['POST', 'GET'])
+def upload_resume_test():
+    if request.method == 'POST':
+        try:
+            user_id = get_jwt_identity()
+        except Exception as err:
+            logging.exception(err)
+            return dumps('Invalid user'), 400
+
+        if 'file' not in request.files:
+            return dumps('No selected file'), 400
+        file = request.files['file']
+        if file.filename == '':
+            return dumps('No selected file'), 400
+        if file and allowed_file(file.filename):
+            new_directory = str(uuid.uuid1())
+            filename = secure_filename(file.filename)
+            file_directory = app.config['UPLOAD_FOLDER']+'/'+new_directory
+
+            if filename.endswith('.pdf') or filename.endswith('.docx'):
+                os.makedirs(file_directory)
+                file_path = os.path.join(file_directory, filename)
+                file.save(os.path.join(file_directory, filename))
+                text = None
+                if filename.endswith('.pdf'):
+                    text = convert_pdf_to_txt(file_path)
+                elif filename.endswith('.docx'):
+                    import docx2txt
+                    text = docx2txt.process(file_path)
+                text_arr = text.split()
+
+                user = User()
+                user.update_user_details(user_id, file_path)
+
+                company = Company()
+                ranked_companies = company.rank_companies(text_arr)
+
+                return dumps(ranked_companies)
+            else:
+                return dumps('Invalid file type'), 400
+        return ''
+
+
 @user_api.route('/user/resume/existing', methods=['POST'])
 @jwt_required
 def get_companies_from_resume():
