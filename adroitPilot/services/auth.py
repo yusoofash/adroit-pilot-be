@@ -104,38 +104,3 @@ class PersonServices:
         del db_details["_id"]
         self.db.replace({"_id": detail_id}, db_details)
         return db_details
-
-
-class User(PersonServices):
-    def __init__(self):
-        user = EntityType.user.name
-        super().__init__(user)
-
-    def register_user(self, user_details):
-        return self.register_service(user_details)
-
-    def get_users(self):
-        return self.get_entity()
-
-    def get_user(self, user_id):
-        return self.get_entity(user_id)
-
-    def authenticate_user(self, email, password):
-        return self.authenticate(email, password)
-
-    def update_user_details(self, user_id, details):
-        from bson.objectid import ObjectId
-        user = self.db.read_one({'_id': ObjectId(user_id)})
-        if user is None:
-            return None
-        else:
-            # for key in details:
-            #     user[key] = details[key]
-            if "resume" in user:
-                user["resume"].append(details)
-            else:
-                user["resume"] = [details]
-            del user["_id"]
-            self.db.replace({"_id": ObjectId(user_id)}, user)
-            del user['password']
-            return user

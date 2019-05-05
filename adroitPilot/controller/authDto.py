@@ -2,7 +2,7 @@ import functools
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, jsonify
 )
-from ..services.auth import User
+from ..services.user import User
 from ..services.company import Company
 from bson.json_util import dumps
 from flask_jwt_simple import (

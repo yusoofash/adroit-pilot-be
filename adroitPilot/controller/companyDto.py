@@ -2,6 +2,8 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, jsonify
 )
 from werkzeug.utils import secure_filename
+
+from adroitPilot.services.user import User
 from ..services.company import Company
 import cloudinary.uploader
 from bson.json_util import dumps
@@ -18,6 +20,13 @@ def companies():
     company = Company()
     all_companies = company.get_companies()
     return dumps(all_companies)
+
+
+@company_api.route("/company/user_search/<search_query>", methods=['GET'])
+def user_search(search_query):
+    user = User()
+    users = user.search_query(search_query)
+    return dumps(users)
 
 
 @company_api.route("/company/<ObjectId:id>", methods=['GET'])

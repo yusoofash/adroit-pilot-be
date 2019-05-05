@@ -1,6 +1,7 @@
 from .auth import PersonServices, EntityType
 from .prediction import weightage
 
+
 class Company(PersonServices):
     def __init__(self):
         company = EntityType.company.name
@@ -28,6 +29,14 @@ class Company(PersonServices):
             del company1['password']
             companies_dto.append(company1)
         return companies_dto
+
+    def get_matching_keywords(self, key, keywords):
+        keywords_list = self.db.read({key: {"$in": keywords}})
+        keywords_dto = []
+        for keyword in list(keywords_list):
+            for k in keyword[key]:
+                keywords_dto.append(k.lower())
+        return set(keywords_dto)
 
     def rank_companies(self, user_details):
         company_details = self.get_companies()

@@ -5,7 +5,7 @@ from flask import (
     Blueprint, flash, redirect, render_template, request, session, url_for, jsonify
 )
 from werkzeug.utils import secure_filename
-from ..services.auth import User
+from ..services.user import User
 from ..services.company import Company
 import cloudinary.uploader
 from bson.json_util import dumps
@@ -105,13 +105,25 @@ def upload_resume():
                     text = docx2txt.process(file_path)
                 text_arr = text.split()
 
+                company = Company()
+                matching_keywords = company.get_matching_keywords("keywords", text_arr)
+
                 user = User()
-                user.update_user_details(user_id, file_path)
+                user.update_user_resume_details(user_id, file_path)
+
+                user = User()
+                user.insert_keywords(user_id, matching_keywords)
 
                 company = Company()
-                companies = company.companies_matching_keywords(text_arr)
+                ranked_companies = company.rank_companies(text_arr)
 
-                return dumps(companies)
+                ranked_companies_flat = []
+                for ranked_company in ranked_companies:
+                    for company in ranked_company["companies"]:
+                        ranked_companies_flat.append(company)
+
+                return dumps(ranked_companies_flat)
+
             else:
                 return dumps('Invalid file type'), 400
         return ''
@@ -149,7 +161,7 @@ def upload_resume_test():
                 text_arr = text.split()
 
                 user = User()
-                user.update_user_details(user_id, file_path)
+                user.update_user_resume_details(user_id, file_path)
 
                 company = Company()
                 ranked_companies = company.rank_companies(text_arr)
@@ -176,8 +188,13 @@ def get_companies_from_resume():
         text_arr = text.split()
 
         company = Company()
-        companies = company.companies_matching_keywords(text_arr)
+        ranked_companies = company.rank_companies(text_arr)
 
-        return dumps(companies)
+        ranked_companies_flat = []
+        for ranked_company in ranked_companies:
+            for company in ranked_company["companies"]:
+                ranked_companies_flat.append(company)
+
+        return dumps(ranked_companies_flat)
     else:
         return dumps('Invalid file type'), 400
