@@ -27,6 +27,8 @@ class User(PersonServices):
             if "keywords" in user:
                 if self.checkIfExists(user["keywords"], search):
                     filtered_users.append(user)
+                elif search.lower() in user["email"].lower():
+                    filtered_users.append(user)
             elif search.lower() in user["email"].lower():
                 filtered_users.append(user)
         return filtered_users
@@ -43,9 +45,11 @@ class User(PersonServices):
             keywords_list = []
             for keyword in keywords:
                 keywords_list.append(keyword.lower())
-            user["keywords"].append(set(keywords_list))
+            keywords_list = set(keywords_list)
+            for keyword_l in keywords_list:
+                user["keywords"].append(keyword_l)
         else:
-            user["keywords"] = list(set(keywords))
+            user["keywords"] = dict(set(keywords))
 
         self.db.replace({'_id': ObjectId(user_id)}, user)
 

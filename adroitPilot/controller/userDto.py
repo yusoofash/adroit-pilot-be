@@ -2,8 +2,8 @@ import os
 import uuid
 import logging
 from flask import (
-    Blueprint, flash, redirect, render_template, request, session, url_for, jsonify
-)
+    Blueprint, flash, redirect, render_template, request, session, url_for, jsonify,
+    send_from_directory, send_file)
 from werkzeug.utils import secure_filename
 from ..services.user import User
 from ..services.company import Company
@@ -32,6 +32,15 @@ def users():
     all_users = user.get_users()
     return dumps(all_users)
 
+
+@user_api.route("/user/resume_fetch/<path:path>", methods=['GET'])
+def fetch_resume_user(path):
+    arr = path.split("/")
+    file_name = arr[len(arr)-1]
+    directory_loc = arr[1]
+
+    root_dir = os.path.dirname(app.instance_path)
+    return send_from_directory(os.path.join(root_dir, app.config['UPLOAD_FOLDER'].split("./")[1], directory_loc), file_name)
 
 @user_api.route("/user/<ObjectId:userid>", methods=['GET'])
 @jwt_required
