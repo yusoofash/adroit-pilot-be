@@ -42,12 +42,33 @@ def fetch_resume_user(path):
     root_dir = os.path.dirname(app.instance_path)
     return send_from_directory(os.path.join(root_dir, app.config['UPLOAD_FOLDER'].split("./")[1], directory_loc), file_name)
 
+
+@user_api.route("/user/<ObjectId:id>", methods=['PUT'])
+@jwt_required
+def update_company_details(id):
+    if not request.json:
+        return jsonify('No data supplied'), 400
+    details = request.json
+    user = User()
+    res = user.get_user(id)
+    return dumps(res)
+
+
 @user_api.route("/user/<ObjectId:userid>", methods=['GET'])
 @jwt_required
 def user_details(userid):
     user = User()
     user = user.get_user(userid)
     return dumps(user)
+
+
+@user_api.route("/user/update_account", methods=['POST'])
+@jwt_required
+def update_account():
+    details = request.json['details']
+    user = User()
+    res = user.update_user_details(details)
+    return dumps(res)
 
 
 def allowed_file(filename):

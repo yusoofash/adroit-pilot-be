@@ -33,6 +33,21 @@ class User(PersonServices):
                 filtered_users.append(user)
         return filtered_users
 
+    def update_user_details(self, details):
+        user = self.db.read_one({'_id': ObjectId(details["id"])})
+        from werkzeug.security import generate_password_hash
+        user["password"] = generate_password_hash(details["password"])
+        user["first_name"] = details["firstName"]
+        user["last_name"] = details["lastName"]
+
+        self.update_details(ObjectId(details["id"]), user)
+
+        email = user["email"]
+        password = details["password"]
+
+        return self.authenticate(email, password)
+
+
     def checkIfExists(self, arr, keyword):
         for keyword_a in arr:
             if keyword_a.lower() == keyword.lower():
