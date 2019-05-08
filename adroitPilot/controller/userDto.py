@@ -71,6 +71,17 @@ def update_account():
     return dumps(res)
 
 
+@user_api.route("/user/delete_resume", methods=['POST'])
+@jwt_required
+def delete_resume():
+    user_id = request.json['id']
+    # this path is used to delete the directory
+    resume = request.json['resume']
+    user = User()
+    res = user.delete_resume(user_id, resume)
+    return dumps(res)
+
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in config.ALLOWED_EXTENSIONS
@@ -135,6 +146,10 @@ def upload_resume():
                     text = docx2txt.process(file_path)
                 text_arr = text.split()
 
+
+                for i in range(len(text_arr)):
+                    text_arr[i] = text_arr[i].lower()
+
                 company = Company()
                 matching_keywords = company.get_matching_keywords("keywords", text_arr)
 
@@ -190,13 +205,16 @@ def upload_resume_test():
                     text = docx2txt.process(file_path)
                 text_arr = text.split()
 
-                user = User()
-                user.update_user_resume_details(user_id, file_path)
+                # user = User()
+                # user.update_user_resume_details(user_id, file_path)
 
                 company = Company()
                 ranked_companies = company.rank_companies(text_arr)
 
-                return dumps(ranked_companies)
+                company = Company()
+                matching_keywords = company.get_matching_keywords("keywords", text_arr)
+
+                return dumps(matching_keywords)
             else:
                 return dumps('Invalid file type'), 400
         return ''

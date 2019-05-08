@@ -1,7 +1,9 @@
 from bson.objectid import ObjectId
 
 from .auth import EntityType, PersonServices
-
+import shutil
+from adroitPilot import app
+import os
 
 class User(PersonServices):
     def __init__(self):
@@ -48,12 +50,32 @@ class User(PersonServices):
         return self.authenticate(email, password)
 
 
+    def delete_resume(self, user_id, resume):
+        user_details = self.db.read_one({'_id': ObjectId(user_id)})
+        for i in range(len(user_details["resume"])):
+            if user_details["resume"][i] == resume:
+                del user_details["resume"][i]
+                break
+
+        try:
+            arr = resume.split("/")
+            directory_loc = arr[2].split("\\")[0]
+
+            root_dir = os.path.dirname(app.instance_path)
+            resume_directory = os.path.join(root_dir, app.config['UPLOAD_FOLDER'].split("./")[1], directory_loc)
+            shutil.rmtree(resume_directory)
+        except Exception as err:
+            return str(err)
+        self.db.replace({'_id': ObjectId(user_id)}, user_details)
+        return True
+
+
     def checkIfExists(self, arr, keyword):
         for keyword_a in arr:
             if keyword_a.lower() == keyword.lower():
                 return True
 
-    def insert_keywords(self, user_id, keywords):
+    def insert_keywords(self, user_id, keywords = []):
         user = self.db.read_one({'_id': ObjectId(user_id)})
 
         if "keywords" in user:
@@ -64,7 +86,7 @@ class User(PersonServices):
             for keyword_l in keywords_list:
                 user["keywords"].append(keyword_l)
         else:
-            user["keywords"] = dict(set(keywords))
+            user["keywords"] = list(set(keywords))
 
         self.db.replace({'_id': ObjectId(user_id)}, user)
 

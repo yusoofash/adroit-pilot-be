@@ -1,6 +1,6 @@
 from .auth import PersonServices, EntityType
 from .prediction import weightage
-
+import re
 
 class Company(PersonServices):
     def __init__(self):
@@ -31,11 +31,18 @@ class Company(PersonServices):
         return companies_dto
 
     def get_matching_keywords(self, key, keywords):
-        keywords_list = self.db.read({key: {"$in": keywords}})
+        cleansed_data = []
+        for data in keywords:
+            # using regular expression to remove punctuations and considering only alphanumeric characters
+            filtered_data = re.sub('[^\w^\.]', '', data.strip().lower())
+            cleansed_data.append(filtered_data)
+
+        keywords_list = self.db.read({key: {"$in": cleansed_data}}, {"keywords": 1, "_id": 0})
         keywords_dto = []
-        for keyword in list(keywords_list):
-            for k in keyword[key]:
-                keywords_dto.append(k.lower())
+        for keywords_arr in list(keywords_list):
+            for keyword in keywords_arr[key]:
+                if keyword in cleansed_data:
+                    keywords_dto.append(keyword.lower())
         return set(keywords_dto)
 
     def rank_companies(self, user_details):

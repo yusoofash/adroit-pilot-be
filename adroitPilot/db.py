@@ -12,9 +12,11 @@ class DatabaseRepository:
         except Exception as err:
             raise Exception('Collection not specified', err)
 
-    def read(self, val=None):
+    def read(self, val=None, projection=None):
         if val is None:
             return self.db.find({})
+        elif projection is not None:
+            return self.db.find(val, projection)
         else:
             return self.db.find(val)
 
