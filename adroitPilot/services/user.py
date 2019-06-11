@@ -72,7 +72,7 @@ class User(PersonServices):
 
     def checkIfExists(self, arr, keyword):
         for keyword_a in arr:
-            if keyword_a.lower() == keyword.lower():
+            if keyword_a.lower().strip() == keyword.lower().strip():
                 return True
 
     def insert_keywords(self, user_id, keywords = []):

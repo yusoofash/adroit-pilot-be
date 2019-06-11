@@ -4,7 +4,8 @@ import pprint
 # user_exp = 2
 # user_skill2 = ['ML','css','java']
 # user_skill3 = ['java','javascript','html']
-
+# user_skill4 = []
+#
 # pp = pprint.PrettyPrinter(depth=6)
 #
 # companies = [
@@ -35,9 +36,10 @@ def weightage(user_data, companies):
                 if skill.strip().lower() == keyword.strip().lower():
                     matched_skills.append(skill)
                     count = count + 1
-        company["matched_skills"]= matched_skills
-        company["count"] = count
-        unranked_companies.append(company)
+        if len(matched_skills) > 0:
+            company["matched_skills"] = matched_skills
+            company["count"] = count
+            unranked_companies.append(company)
     return rank(cleansed_user_data, unranked_companies)
 
 
@@ -140,5 +142,5 @@ def cleanseData(arr):
         cleansed_data.append(filtered_data)
     return cleansed_data
 
-#weightage(user_skill1, companies)
+# weightage(user_skill4, companies)
 

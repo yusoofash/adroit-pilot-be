@@ -146,6 +146,13 @@ def upload_resume():
                     text = docx2txt.process(file_path)
                 text_arr = text.split()
 
+                all_text_arr = []
+
+                for text_word in text_arr:
+                    for word in text_word.split(","):
+                        all_text_arr.append(word)
+
+                text_arr = all_text_arr
 
                 for i in range(len(text_arr)):
                     text_arr[i] = text_arr[i].lower()
@@ -234,6 +241,14 @@ def get_companies_from_resume():
             import docx2txt
             text = docx2txt.process(resume_path)
         text_arr = text.split()
+
+        all_text_arr = []
+
+        for text_word in text_arr:
+            for word in text_word.split(","):
+                all_text_arr.append(word)
+
+        text_arr = all_text_arr
 
         company = Company()
         ranked_companies = company.rank_companies(text_arr)
