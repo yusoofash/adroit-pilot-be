@@ -11,7 +11,7 @@ Flask-JWT-Simple==0.0.3
 Flask-PyMongo==2.1.0
 itsdangerous==0.24
 Jinja2==2.10
-lxml==4.2.5
+lxml==4.9.1
 MarkupSafe==1.0
 mock==2.0.0
 numpy==1.15.4
